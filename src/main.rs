@@ -1,3 +1,4 @@
+use rand::seq::SliceRandom;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use yew::prelude::*;
@@ -15,6 +16,8 @@ enum Route {
 struct Card {
     id: String,
     cost: usize,
+    #[serde(default)]
+    img: Vec<String>,
     name: String,
     health: usize,
     defense: usize,
@@ -33,39 +36,64 @@ struct CardListProps {
     search: String,
 }
 
+#[derive(Deserialize, PartialEq)]
+#[serde(tag = "type")]
+enum QueryResult {
+    CardList { content: Vec<Card> },
+    Error { message: String },
+}
+
 #[function_component(CardList)]
 fn card_list(CardListProps { search }: &CardListProps) -> Html {
-    let cards = use_state_eq(|| vec![]);
+    let result = use_state_eq(|| None);
     let search = search.clone();
-    let cards2 = cards.clone();
+    let result2 = result.clone();
     wasm_bindgen_futures::spawn_local(async move {
-        let cards = cards2.clone();
+        let result = result2.clone();
         let client = Client::new();
         let url = format!("http://127.0.0.1:3000/search?query={}", search.clone());
         if let Ok(response) = client.get(&url).send().await {
-            if let Ok(result) = response.json::<Vec<Card>>().await {
-                cards.set(result);
+            match response.json::<QueryResult>().await {
+                Ok(x) => result.set(Some(x)),
+                Err(x) => panic!("{x:#?}"),
             }
         }
     });
-    let a = cards
-        .iter()
-        .map(|card| {
-            html! {
-                <Link<Route> to={Route::Card{id: card.id.clone()}}><img class="card-result" src={get_filegarden_link(&card.name)} /></Link<Route>>
-            }
-        });
+    match result.as_ref() {
+        Some(QueryResult::CardList { content }) => {
+            let a = content
+                .iter()
+                .map(|card| {
+                    html! {
 
-    html! {
-        <div id="results">
-            {for a}
-        </div>
+                        <Link<Route> to={Route::Card{id: card.id.clone()}}><img class="card-result" src={get_filegarden_link(&card.img.choose(&mut rand::thread_rng()).unwrap_or(&card.name))} /></Link<Route>>
+                    }
+                });
+
+            html! {
+                <div id="results">
+                    {for a}
+                </div>
+            }
+        }
+        Some(QueryResult::Error { message }) => {
+            html! {
+                <div id="search-error">
+                    <p><b>{"ERROR:"}</b>{message}</p>
+                </div>
+            }
+        }
+        None => html! {
+            <div id="results">
+                {"Searching"}
+            </div>
+        },
     }
 }
 
 #[function_component(CardDetails)]
 fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
-    let card = use_state(|| None);
+    let card = use_state_eq(|| None);
     let card_id = card_id.clone();
     let card2 = card.clone();
     wasm_bindgen_futures::spawn_local(async move {
@@ -98,6 +126,10 @@ fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
         .as_ref()
         .map_or("ID not found".to_string(), |c| c.r#type.clone());
 
+    let img = card.as_ref().map_or(vec![], |c| c.img.clone());
+
+    let img = img.choose(&mut rand::thread_rng()).unwrap_or(&name);
+
     let cost = card.as_ref().map_or(9999, |c| c.cost.clone());
     let health = card.as_ref().map_or(9999, |c| c.health.clone());
     let defense = card.as_ref().map_or(9999, |c| c.defense.clone());
@@ -105,11 +137,11 @@ fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
 
     html! {
         <div id="details">
-            <img id="details-preview" src={get_filegarden_link(&name)} />
+            <img id="details-preview" src={get_filegarden_link(img)} />
             <div id="text-description">
                 <h1 id="details-title">{name.clone()}</h1>
                 <hr />
-                <p id="cost-line"><b>{"Cost: "}</b>{cost} {" "} {r#type}</p>
+                <p id="cost-line">{get_ascii_titlecase(&r#type)} {" :: "} {cost} {" Blood"}</p>
                 <hr />
                 {description}
                 <hr />
@@ -117,6 +149,14 @@ fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
             </div>
         </div>
     }
+}
+
+fn get_ascii_titlecase(s: &str) -> String {
+    let mut b = s.to_string();
+    if let Some(r) = b.get_mut(0..1) {
+        r.make_ascii_uppercase();
+    }
+    b
 }
 
 #[function_component(SearchBar)]
@@ -165,7 +205,7 @@ fn switch(route: Route) -> Html {
 fn get_filegarden_link(name: &str) -> String {
     format!(
         "https://file.garden/ZJSEzoaUL3bz8vYK/bloodlesscards/{}.png",
-        name.replace(" ", "")
+        name.replace(" ", "").replace("ä", "a")
     )
 }
 
