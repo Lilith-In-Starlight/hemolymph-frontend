@@ -2,24 +2,32 @@
 <html>
     <style>
         #logo {
-            margin-right: 10px;
-        }
-        #search-bar {
-            width: 80%;
+            width: 100%;
+            object-fit: cover;
         }
         #search {
             width: 80%;
             margin: auto;
             padding-bottom: 20px;
+            display: grid;
+            grid-template-columns: 10% auto;
+            grid-column-gap: 20px;
         }
         #details {
             display: grid;
             margin: auto;
             width: 50%;
+            justify-content: stretch;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-column-gap: 20px;
         }
         #results {
             margin: auto;
             width: 70%;
+            grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+            column-gap: 10px;
+            row-gap: 10px;
+            display: grid;
         }
         #text-description {
             grid-column-start: 2;
@@ -29,18 +37,20 @@
         }
         .card-result {
             width: 200px;
+            border: black solid 3px;
+            border-radius: 10px;
         }
     </style>
     <head>
         <meta charset="utf-8" />
         <title>Hemolymph</title>
     
-<link rel="modulepreload" href="/hemolymph-frontend-1abb62ebf6cd6c80.js" crossorigin=anonymous integrity="sha384-AdjHGnwTStjjsos+9QCXsjU7Guxej2URP/l6IuSM86BkeaFPa2MIZMl8lo+nuPN4">
-<link rel="preload" href="/hemolymph-frontend-1abb62ebf6cd6c80_bg.wasm" crossorigin=anonymous integrity="sha384-J956Dk9wgSlFlY/1pFHeEsxhbZnYhf6DdsTIdAl3DouFnAizM4eqQF2rAOEPgNMb" as="fetch" type="application/wasm"></head>
+<link rel="modulepreload" href="/hemolymph-frontend-f21da01d11ca5b40.js" crossorigin=anonymous integrity="sha384-20vfTQCBGut5cmahbTaNmiaVT03aHQwO9qLgdr2AJ/LaKDbKurfGcDZb1wpqrbHE">
+<link rel="preload" href="/hemolymph-frontend-f21da01d11ca5b40_bg.wasm" crossorigin=anonymous integrity="sha384-A6aJ5hlRbVaioTORA5xxb0N1I5G2X0p+IFeIl5kWNU8Uw9Fq+YEBekb//IkT2qTz" as="fetch" type="application/wasm"></head>
     <body>
-<script type="module" nonce="T/qAbzaTH6uxluZbmEwsoA==">
-import init, * as bindings from '/hemolymph-frontend-1abb62ebf6cd6c80.js';
-const wasm = await init('/hemolymph-frontend-1abb62ebf6cd6c80_bg.wasm');
+<script type="module" nonce="aUUwvXHTbF/HoKJwNZN/pg==">
+import init, * as bindings from '/hemolymph-frontend-f21da01d11ca5b40.js';
+const wasm = await init('/hemolymph-frontend-f21da01d11ca5b40_bg.wasm');
 
 
 window.wasmBindings = bindings;

@@ -171,7 +171,7 @@ fn search_bar() -> Html {
                 .target_unchecked_into::<web_sys::HtmlInputElement>()
                 .value();
             query.set(input.clone());
-            nav.push(&Route::Search {
+            nav.replace(&Route::Search {
                 query: input.clone(),
             })
         })
@@ -179,7 +179,7 @@ fn search_bar() -> Html {
 
     html! {
          <nav id="search">
-            <span id="logo">{ "Hemolymph" }</span>
+            <Link<Route> to={Route::Search { query: "".to_string() }}><img id="logo" src="https://file.garden/ZJSEzoaUL3bz8vYK/hemolymphlogo.png" /></Link<Route>>
             <input id="search-bar" type="text" value={(*query).clone()} {oninput} />
         </nav>
     }
