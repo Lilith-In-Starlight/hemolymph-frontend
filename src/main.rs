@@ -1,6 +1,7 @@
+use hemoglobin::cards::Card;
 use rand::seq::SliceRandom;
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
@@ -10,20 +11,6 @@ enum Route {
     Search { query: String },
     #[at("/card/:id")]
     Card { id: String },
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
-struct Card {
-    id: String,
-    cost: usize,
-    #[serde(default)]
-    img: Vec<String>,
-    name: String,
-    health: usize,
-    defense: usize,
-    r#type: String,
-    power: usize,
-    description: String,
 }
 
 #[derive(Properties, PartialEq)]
@@ -51,7 +38,7 @@ fn card_list(CardListProps { search }: &CardListProps) -> Html {
     wasm_bindgen_futures::spawn_local(async move {
         let result = result2.clone();
         let client = Client::new();
-        let url = format!("http://127.0.0.1:3000/search?query={}", search.clone());
+        let url = format!("http://127.0.0.1:3000/api/search?query={}", search.clone());
         if let Ok(response) = client.get(&url).send().await {
             match response.json::<QueryResult>().await {
                 Ok(x) => result.set(Some(x)),
@@ -99,7 +86,7 @@ fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
     wasm_bindgen_futures::spawn_local(async move {
         let card = card2.clone();
         let client = Client::new();
-        let url = format!("http://127.0.0.1:3000/card?id={}", card_id.clone());
+        let url = format!("http://127.0.0.1:3000/api/card?id={}", card_id.clone());
         if let Ok(response) = client.get(&url).send().await {
             if let Ok(result) = response.json::<Card>().await {
                 card.set(Some(result));
