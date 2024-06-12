@@ -1,3 +1,6 @@
+#![warn(clippy::pedantic)]
+use std::sync::Mutex;
+
 use hemoglobin::cards::Card;
 use rand::seq::SliceRandom;
 use reqwest::Client;
@@ -5,12 +8,16 @@ use serde::Deserialize;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
+static QUERY: Mutex<String> = Mutex::new(String::new());
+
 #[derive(Clone, Routable, PartialEq)]
 enum Route {
     #[at("/:query")]
     Search { query: String },
     #[at("/card/:id")]
     Card { id: String },
+    #[at("/howto")]
+    Instructions,
 }
 
 #[derive(Properties, PartialEq)]
@@ -53,11 +60,12 @@ fn card_list(CardListProps { search }: &CardListProps) -> Html {
                 .map(|card| {
                     html! {
 
-                        <Link<Route> to={Route::Card{id: card.id.clone()}}><img class="card-result" src={get_filegarden_link(&card.img.choose(&mut rand::thread_rng()).unwrap_or(&card.name))} /></Link<Route>>
+                        <Link<Route> to={Route::Card{id: card.id.clone()}}><img class="card-result" src={get_filegarden_link(card.img.choose(&mut rand::thread_rng()).unwrap_or(&card.name))} /></Link<Route>>
                     }
                 });
 
             html! {
+
                 <div id="results">
                     {for a}
                 </div>
@@ -101,7 +109,6 @@ fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
         .as_ref()
         .map_or("ID not found".to_string(), |c| c.description.clone())
         .lines()
-        .into_iter()
         .map(|line| {
             html! {
                 <p class="description-line">{line}</p>
@@ -117,22 +124,24 @@ fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
 
     let img = img.choose(&mut rand::thread_rng()).unwrap_or(&name);
 
-    let cost = card.as_ref().map_or(9999, |c| c.cost.clone());
-    let health = card.as_ref().map_or(9999, |c| c.health.clone());
-    let defense = card.as_ref().map_or(9999, |c| c.defense.clone());
-    let power = card.as_ref().map_or(9999, |c| c.power.clone());
+    let cost = card.as_ref().map_or(9999, |c| c.cost);
+    let health = card.as_ref().map_or(9999, |c| c.health);
+    let defense = card.as_ref().map_or(9999, |c| c.defense);
+    let power = card.as_ref().map_or(9999, |c| c.power);
 
     html! {
-        <div id="details">
-            <img id="details-preview" src={get_filegarden_link(img)} />
-            <div id="text-description">
-                <h1 id="details-title">{name.clone()}</h1>
-                <hr />
-                <p id="cost-line">{get_ascii_titlecase(&r#type)} {" :: "} {cost} {" Blood"}</p>
-                <hr />
-                {description}
-                <hr />
-                <p id="stats-line">{health}{"/"}{defense}{"/"}{power}</p>
+        <div id="details-view">
+            <div id="details">
+                <img id="details-preview" src={get_filegarden_link(img)} />
+                <div id="text-description">
+                    <h1 id="details-title">{name.clone()}</h1>
+                    <hr />
+                    <p id="cost-line">{get_ascii_titlecase(&r#type)} {" :: "} {cost} {" Blood"}</p>
+                    <hr />
+                    {description}
+                    <hr />
+                    <p id="stats-line">{health}{"/"}{defense}{"/"}{power}</p>
+                </div>
             </div>
         </div>
     }
@@ -149,25 +158,31 @@ fn get_ascii_titlecase(s: &str) -> String {
 #[function_component(SearchBar)]
 fn search_bar() -> Html {
     let nav = use_navigator().unwrap();
-    let query = use_state(|| String::new());
+    let state = use_state(|| false);
     let oninput = {
-        let query = query.clone();
         Callback::from(move |e: InputEvent| {
+            let state = state.clone();
+            state.set(!*state);
+            let mut query = QUERY.lock().unwrap();
             let nav = nav.clone();
             let input = e
                 .target_unchecked_into::<web_sys::HtmlInputElement>()
                 .value();
-            query.set(input.clone());
+            query.clone_from(&input);
             nav.replace(&Route::Search {
                 query: input.clone(),
-            })
+            });
         })
     };
 
+    let quer = QUERY.lock().unwrap().clone();
+
     html! {
          <nav id="search">
-            <Link<Route> to={Route::Search { query: "".to_string() }}><img id="logo" src="https://file.garden/ZJSEzoaUL3bz8vYK/hemolymphlogo.png" /></Link<Route>>
-            <input id="search-bar" type="text" value={(*query).clone()} {oninput} />
+            <Link<Route> to={Route::Search { query: String::new() }}><img id="logo" src="https://file.garden/ZJSEzoaUL3bz8vYK/hemolymphlogo.png" /></Link<Route>>
+            <input id="search-bar" type="text" value={quer.clone()} {oninput} />
+            <Link<Route> to={Route::Search {query: quer}}><span>{"Back to search"}</span></Link<Route>>
+            <Link<Route> to={Route::Instructions}><span>{"How To Use"}</span></Link<Route>>
         </nav>
     }
 }
@@ -186,13 +201,41 @@ fn switch(route: Route) -> Html {
     match route {
         Route::Search { query } => html! {<CardList search={query} />},
         Route::Card { id } => html! {<CardDetails card_id={id}/>},
+        Route::Instructions => html! {
+            <div id="instructions">
+                <section>
+                    <h2>{"How to use Hemolymph"}</h2>
+                    <p>{"Hemolymph is the arthropod equivalent of blood. It is also Bloodless' official card database."}</p>
+                    <section class="instruction">
+                        <h3>{"Fuzzy Search"}</h3>
+                        <p>{"By default, your searches look for matches in Name, Kins, Keywords and Description, prioritizing them in that order."}</p>
+                    </section>
+                    <section class="instruction">
+                        <h3>{"Name"}</h3>
+                        <p>{"If you want to search by name only, you can write "}<span class="code">{"name:"}</span>{" or "}<span class="code">{"n:"}</span>{" before the name."}</p>
+                    </section>
+                    <section class="instruction">
+                        <h3>{"Kins, Types and Keywords"}</h3>
+                        <p>{"You can use "}<span class="code">{"k:"}</span>{" for kins and "}<span class="code">{"kw:"}</span>{" for kin. If you want to match more than one kin, they have to be separate. To search by type, use "} <span class="code">{"t:"}</span>{"."}</p>
+                    </section>
+                    <section class="Stats">
+                        <h3>{"Kins and Keywords"}</h3>
+                        <p>{"You can use "}<span class="code">{"h: d: p:"}</span>{" and "}<span class="code">{"c:"}</span>{" for health, defense, power and strength, respectively. You can also match comparisons, like "}<span class="code">{"c<=1 h=2 d>1 p!=2"}</span>{"."}</p>
+                    </section>
+                    <section class="Function">
+                        <h3>{"Functions"}</h3>
+                        <p>{"To search based on things cards can be used for, use "}<span class="code">{"fn:"}</span>{". The spefifics of functions will be documented later, but right now you can, for example, search for "}<span class="code">{"fn:\"search deck\""}</span>{"."}</p>
+                    </section>
+                </section>
+            </div>
+        },
     }
 }
 
 fn get_filegarden_link(name: &str) -> String {
     format!(
         "https://file.garden/ZJSEzoaUL3bz8vYK/bloodlesscards/{}.png",
-        name.replace(" ", "").replace("ä", "a")
+        name.replace(' ', "").replace("ä", "a")
     )
 }
 

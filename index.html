@@ -1,6 +1,10 @@
 <!doctype html>
 <html>
     <style>
+		@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+		body {
+			font-family: "Noto Sans", sans-serif;
+		}
         #logo {
             width: 100%;
             object-fit: cover;
@@ -16,10 +20,14 @@
         #details {
             display: grid;
             margin: auto;
-            width: 50%;
+            width: 60%;
             justify-content: stretch;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             grid-column-gap: 20px;
+        }
+        #details-view {
+            margin: auto;
+            width: 80%;
         }
         #results {
             margin: auto;
@@ -44,6 +52,6 @@
     <head>
         <meta charset="utf-8" />
         <title>Hemolymph</title>
-    </head>
+    
     <body></body>
 </html>
