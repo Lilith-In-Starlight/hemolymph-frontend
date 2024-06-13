@@ -221,7 +221,7 @@ fn search_bar() -> Html {
 }
 
 #[function_component(App)]
-fn app() -> Html {
+pub fn app() -> Html {
     html! {
         <BrowserRouter>
             <SearchBar />
