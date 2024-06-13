@@ -9,6 +9,15 @@ use yew::prelude::*;
 use yew_router::prelude::*;
 
 static QUERY: Mutex<String> = Mutex::new(String::new());
+#[cfg(not(debug_assertions))]
+static HOST: &'static str = "104.248.54.50";
+#[cfg(not(debug_assertions))]
+static PORT: &'static str = "80";
+
+#[cfg(debug_assertions)]
+static HOST: &'static str = "127.0.0.1";
+#[cfg(debug_assertions)]
+static PORT: &'static str = "8080";
 
 #[derive(Clone, Routable, PartialEq)]
 enum Route {
@@ -45,10 +54,7 @@ fn card_list(CardListProps { search }: &CardListProps) -> Html {
     wasm_bindgen_futures::spawn_local(async move {
         let result = result2.clone();
         let client = Client::new();
-        let url = format!(
-            "http://104.248.54.50:80/api/search?query={}",
-            search.clone()
-        );
+        let url = format!("http://{HOST}:{PORT}/api/search?query={}", search.clone());
         if let Ok(response) = client.get(&url).send().await {
             match response.json::<QueryResult>().await {
                 Ok(x) => result.set(Some(x)),
@@ -97,7 +103,7 @@ fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
     wasm_bindgen_futures::spawn_local(async move {
         let card = card2.clone();
         let client = Client::new();
-        let url = format!("http://104.248.54.50:80/api/card?id={}", card_id.clone());
+        let url = format!("http://{HOST}:{PORT}/api/card?id={}", card_id.clone());
         if let Ok(response) = client.get(&url).send().await {
             if let Ok(result) = response.json::<Card>().await {
                 card.set(Some(result));
