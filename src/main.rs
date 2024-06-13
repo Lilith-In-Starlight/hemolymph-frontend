@@ -45,7 +45,10 @@ fn card_list(CardListProps { search }: &CardListProps) -> Html {
     wasm_bindgen_futures::spawn_local(async move {
         let result = result2.clone();
         let client = Client::new();
-        let url = format!("http://127.0.0.1:3000/api/search?query={}", search.clone());
+        let url = format!(
+            "http://104.248.54.50:80/api/search?query={}",
+            search.clone()
+        );
         if let Ok(response) = client.get(&url).send().await {
             match response.json::<QueryResult>().await {
                 Ok(x) => result.set(Some(x)),
@@ -94,7 +97,7 @@ fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
     wasm_bindgen_futures::spawn_local(async move {
         let card = card2.clone();
         let client = Client::new();
-        let url = format!("http://127.0.0.1:3000/api/card?id={}", card_id.clone());
+        let url = format!("http://104.248.54.50:80/api/card?id={}", card_id.clone());
         if let Ok(response) = client.get(&url).send().await {
             if let Ok(result) = response.json::<Card>().await {
                 card.set(Some(result));
