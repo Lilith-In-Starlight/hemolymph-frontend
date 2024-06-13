@@ -1,4 +1,5 @@
 #![warn(clippy::pedantic)]
+use std::collections::HashMap;
 use std::sync::Mutex;
 
 use hemoglobin::cards::Card;
@@ -8,7 +9,11 @@ use serde::Deserialize;
 use web_sys::wasm_bindgen::JsCast;
 use web_sys::HtmlMetaElement;
 use yew::prelude::*;
+use yew_router::history::AnyHistory;
+use yew_router::history::History;
+use yew_router::history::MemoryHistory;
 use yew_router::prelude::*;
+use yew_router::Router;
 
 static QUERY: Mutex<String> = Mutex::new(String::new());
 #[cfg(not(debug_assertions))]
@@ -54,7 +59,7 @@ fn card_list(CardListProps { search }: &CardListProps) -> Html {
     let result = use_state_eq(|| None);
     let search = search.clone();
     let result2 = result.clone();
-    wasm_bindgen_futures::spawn_local(async move {
+    run_future(async move {
         let result = result2.clone();
         let client = Client::new();
         let url = format!("http://{HOST}:{PORT}/api/search?query={}", search.clone());
@@ -103,7 +108,7 @@ fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
     let card = use_state_eq(|| None);
     let card_id = card_id.clone();
     let card2 = card.clone();
-    wasm_bindgen_futures::spawn_local(async move {
+    run_future(async move {
         let card = card2.clone();
         let client = Client::new();
         let url = format!("http://{HOST}:{PORT}/api/card?id={}", card_id.clone());
@@ -167,6 +172,7 @@ fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 fn modify_meta_tag_content(name: &str, new_content: &str) {
     let window = web_sys::window().expect("No window exists");
     let document = window.document().expect("No document on window");
@@ -179,6 +185,8 @@ fn modify_meta_tag_content(name: &str, new_content: &str) {
 
     desc.set_content(new_content);
 }
+#[cfg(not(target_arch = "wasm32"))]
+fn modify_meta_tag_content(name: &str, new_content: &str) {}
 
 fn get_ascii_titlecase(s: &str) -> String {
     let mut b = s.to_string();
@@ -230,6 +238,26 @@ pub fn app() -> Html {
     }
 }
 
+#[derive(Properties, PartialEq, Eq, Debug)]
+pub struct ServerAppProps {
+    pub url: AttrValue,
+    pub queries: HashMap<String, String>,
+}
+
+#[function_component(ServerApp)]
+pub fn server_app(props: &ServerAppProps) -> Html {
+    let history = AnyHistory::from(MemoryHistory::new());
+    history
+        .push_with_query(&*props.url, &props.queries)
+        .unwrap();
+    html! {
+        <Router history={history}>
+            <SearchBar />
+            <Switch<Route> render={switch} />
+        </Router>
+    }
+}
+
 fn switch(route: Route) -> Html {
     match route {
         Route::Search { query } => html! {<CardList search={query} />},
@@ -270,4 +298,32 @@ fn get_filegarden_link(name: &str) -> String {
         "https://file.garden/ZJSEzoaUL3bz8vYK/bloodlesscards/{}.png",
         name.replace(' ', "").replace("ä", "a")
     )
+}
+
+#[cfg(target_arch = "wasm32")]
+
+pub fn run_future<F>(future: F)
+where
+    F: std::future::Future<Output = ()> + 'static,
+{
+    use wasm_bindgen_futures::spawn_local;
+    spawn_local(future);
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn run_future<F>(_future: F)
+where
+    F: std::future::Future<Output = ()> + 'static,
+{
+    use futures::executor::LocalPool;
+    use futures::task::LocalSpawnExt;
+
+    pub fn run_future<F>(future: F)
+    where
+        F: std::future::Future<Output = ()> + 'static,
+    {
+        let mut pool = LocalPool::new();
+        pool.spawner().spawn_local(future).unwrap();
+        pool.run_until_stalled();
+    }
 }
