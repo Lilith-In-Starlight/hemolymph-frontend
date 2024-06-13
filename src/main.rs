@@ -5,6 +5,8 @@ use hemoglobin::cards::Card;
 use rand::seq::SliceRandom;
 use reqwest::Client;
 use serde::Deserialize;
+use web_sys::wasm_bindgen::JsCast;
+use web_sys::HtmlMetaElement;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
@@ -15,9 +17,9 @@ static HOST: &'static str = "104.248.54.50";
 static PORT: &'static str = "80";
 
 #[cfg(debug_assertions)]
-static HOST: &'static str = "127.0.0.1";
+static HOST: &str = "127.0.0.1";
 #[cfg(debug_assertions)]
-static PORT: &'static str = "8080";
+static PORT: &str = "8080";
 
 #[derive(Clone, Routable, PartialEq)]
 enum Route {
@@ -48,6 +50,7 @@ enum QueryResult {
 
 #[function_component(CardList)]
 fn card_list(CardListProps { search }: &CardListProps) -> Html {
+    modify_meta_tag_content("description", "A search engine for Bloodless cards.");
     let result = use_state_eq(|| None);
     let search = search.clone();
     let result2 = result.clone();
@@ -138,6 +141,14 @@ fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
     let defense = card.as_ref().map_or(9999, |c| c.defense);
     let power = card.as_ref().map_or(9999, |c| c.power);
 
+    modify_meta_tag_content(
+        "description",
+        &card
+            .as_ref()
+            .map_or("ID not found".to_string(), |c| c.description.clone()),
+    );
+    modify_meta_tag_content("og:image", &get_filegarden_link(img));
+
     html! {
         <div id="details-view">
             <div id="details">
@@ -154,6 +165,19 @@ fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
             </div>
         </div>
     }
+}
+
+fn modify_meta_tag_content(name: &str, new_content: &str) {
+    let window = web_sys::window().expect("No window exists");
+    let document = window.document().expect("No document on window");
+    let desc = document
+        .query_selector(&format!("meta[name=\"{name}\"]"))
+        .expect("Couldn't find meta element")
+        .expect("Couldn't find meta element")
+        .dyn_into::<HtmlMetaElement>()
+        .unwrap();
+
+    desc.set_content(new_content);
 }
 
 fn get_ascii_titlecase(s: &str) -> String {

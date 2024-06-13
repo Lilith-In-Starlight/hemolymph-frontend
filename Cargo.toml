@@ -20,5 +20,6 @@ features = [
     "Window",
     "Document",
     "HtmlElement",
+    "HtmlMetaElement",
     "EventTarget",
 ]
