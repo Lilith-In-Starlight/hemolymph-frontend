@@ -55,6 +55,11 @@ enum QueryResult {
 
 #[function_component(CardList)]
 fn card_list(CardListProps { search }: &CardListProps) -> Html {
+    if search.trim().is_empty() {
+        modify_title("");
+    } else {
+        modify_title("Searching");
+    }
     modify_meta_tag_content("description", "A search engine for Bloodless cards.");
     let result = use_state_eq(|| None);
     let search = search.clone();
@@ -122,12 +127,10 @@ fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
             }
         });
     });
-    let name = card
-        .as_ref()
-        .map_or("ID not found".to_string(), |c| c.name.clone());
+    let card = card.as_ref();
+    let name = card.map_or("ID not found".to_string(), |c| c.name.clone());
 
     let description: Html = card
-        .as_ref()
         .map_or("ID not found".to_string(), |c| c.description.clone())
         .lines()
         .map(|line| {
@@ -137,19 +140,18 @@ fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
         })
         .collect();
 
-    let r#type: String = card
-        .as_ref()
-        .map_or("ID not found".to_string(), |c| c.r#type.clone());
+    let r#type: String = card.map_or("ID not found".to_string(), |c| c.r#type.clone());
 
     let img = card.as_ref().map_or(vec![], |c| c.img.clone());
 
     let img = img.choose(&mut rand::thread_rng()).unwrap_or(&name);
 
-    let cost = card.as_ref().map_or(9999, |c| c.cost);
-    let health = card.as_ref().map_or(9999, |c| c.health);
-    let defense = card.as_ref().map_or(9999, |c| c.defense);
-    let power = card.as_ref().map_or(9999, |c| c.power);
+    let cost = card.map_or(9999, |c| c.cost);
+    let health = card.map_or(9999, |c| c.health);
+    let defense = card.map_or(9999, |c| c.defense);
+    let power = card.map_or(9999, |c| c.power);
 
+    modify_title(card.map_or("ID not found", |x| &x.name));
     modify_meta_tag_content(
         "description",
         &card
@@ -189,6 +191,20 @@ fn modify_meta_tag_content(name: &str, new_content: &str) {
 
     desc.set_content(new_content);
 }
+#[cfg(target_arch = "wasm32")]
+fn modify_title(title: &str) {
+    let title = title.trim();
+    let window = web_sys::window().expect("No window exists");
+    let document = window.document().expect("No document on window");
+    if title.is_empty() {
+        document.set_title("Hemolymph");
+    } else {
+        document.set_title(&format!("{title} - Hemolymph"));
+    }
+}
+#[cfg(not(target_arch = "wasm32"))]
+fn modify_title(title: &str) {}
+
 #[cfg(not(target_arch = "wasm32"))]
 fn modify_meta_tag_content(name: &str, new_content: &str) {}
 
@@ -266,34 +282,38 @@ fn switch(route: Route) -> Html {
     match route {
         Route::Search { query } => html! {<CardList search={query} />},
         Route::Card { id } => html! {<CardDetails card_id={id}/>},
-        Route::Instructions => html! {
-            <div id="instructions">
-                <section>
-                    <h2>{"How to use Hemolymph"}</h2>
-                    <p>{"Hemolymph is the arthropod equivalent of blood. It is also Bloodless' official card database."}</p>
-                    <section class="instruction">
-                        <h3>{"Fuzzy Search"}</h3>
-                        <p>{"By default, your searches look for matches in Name, Kins, Keywords and Description, prioritizing them in that order."}</p>
+        Route::Instructions => {
+            modify_title("How To");
+            modify_meta_tag_content("description", "How to use this engine");
+            html! {
+                <div id="instructions">
+                    <section>
+                        <h2>{"How to use Hemolymph"}</h2>
+                        <p>{"Hemolymph is the arthropod equivalent of blood. It is also Bloodless' official card database."}</p>
+                        <section class="instruction">
+                            <h3>{"Fuzzy Search"}</h3>
+                            <p>{"By default, your searches look for matches in Name, Kins, Keywords and Description, prioritizing them in that order."}</p>
+                        </section>
+                        <section class="instruction">
+                            <h3>{"Name"}</h3>
+                            <p>{"If you want to search by name only, you can write "}<span class="code">{"name:"}</span>{" or "}<span class="code">{"n:"}</span>{" before the name."}</p>
+                        </section>
+                        <section class="instruction">
+                            <h3>{"Kins, Types and Keywords"}</h3>
+                            <p>{"You can use "}<span class="code">{"k:"}</span>{" for kins and "}<span class="code">{"kw:"}</span>{" for kin. If you want to match more than one kin, they have to be separate. To search by type, use "} <span class="code">{"t:"}</span>{"."}</p>
+                        </section>
+                        <section class="Stats">
+                            <h3>{"Kins and Keywords"}</h3>
+                            <p>{"You can use "}<span class="code">{"h: d: p:"}</span>{" and "}<span class="code">{"c:"}</span>{" for health, defense, power and strength, respectively. You can also match comparisons, like "}<span class="code">{"c<=1 h=2 d>1 p!=2"}</span>{"."}</p>
+                        </section>
+                        <section class="Function">
+                            <h3>{"Functions"}</h3>
+                            <p>{"To search based on things cards can be used for, use "}<span class="code">{"fn:"}</span>{". The spefifics of functions will be documented later, but right now you can, for example, search for "}<span class="code">{"fn:\"search deck\""}</span>{"."}</p>
+                        </section>
                     </section>
-                    <section class="instruction">
-                        <h3>{"Name"}</h3>
-                        <p>{"If you want to search by name only, you can write "}<span class="code">{"name:"}</span>{" or "}<span class="code">{"n:"}</span>{" before the name."}</p>
-                    </section>
-                    <section class="instruction">
-                        <h3>{"Kins, Types and Keywords"}</h3>
-                        <p>{"You can use "}<span class="code">{"k:"}</span>{" for kins and "}<span class="code">{"kw:"}</span>{" for kin. If you want to match more than one kin, they have to be separate. To search by type, use "} <span class="code">{"t:"}</span>{"."}</p>
-                    </section>
-                    <section class="Stats">
-                        <h3>{"Kins and Keywords"}</h3>
-                        <p>{"You can use "}<span class="code">{"h: d: p:"}</span>{" and "}<span class="code">{"c:"}</span>{" for health, defense, power and strength, respectively. You can also match comparisons, like "}<span class="code">{"c<=1 h=2 d>1 p!=2"}</span>{"."}</p>
-                    </section>
-                    <section class="Function">
-                        <h3>{"Functions"}</h3>
-                        <p>{"To search based on things cards can be used for, use "}<span class="code">{"fn:"}</span>{". The spefifics of functions will be documented later, but right now you can, for example, search for "}<span class="code">{"fn:\"search deck\""}</span>{"."}</p>
-                    </section>
-                </section>
-            </div>
-        },
+                </div>
+            }
+        }
     }
 }
 
