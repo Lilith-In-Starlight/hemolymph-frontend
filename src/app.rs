@@ -59,16 +59,18 @@ fn card_list(CardListProps { search }: &CardListProps) -> Html {
     let result = use_state_eq(|| None);
     let search = search.clone();
     let result2 = result.clone();
-    run_future(async move {
-        let result = result2.clone();
-        let client = Client::new();
-        let url = format!("http://{HOST}:{PORT}/api/search?query={}", search.clone());
-        if let Ok(response) = client.get(&url).send().await {
-            match response.json::<QueryResult>().await {
-                Ok(x) => result.set(Some(x)),
-                Err(x) => panic!("{x:#?}"),
+    use_effect(move || {
+        run_future(async move {
+            let result = result2.clone();
+            let client = Client::new();
+            let url = format!("http://{HOST}:{PORT}/api/search?query={}", search.clone());
+            if let Ok(response) = client.get(&url).send().await {
+                match response.json::<QueryResult>().await {
+                    Ok(x) => result.set(Some(x)),
+                    Err(x) => panic!("{x:#?}"),
+                }
             }
-        }
+        });
     });
     match result.as_ref() {
         Some(QueryResult::CardList { content }) => {
@@ -108,15 +110,17 @@ fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
     let card = use_state_eq(|| None);
     let card_id = card_id.clone();
     let card2 = card.clone();
-    run_future(async move {
-        let card = card2.clone();
-        let client = Client::new();
-        let url = format!("http://{HOST}:{PORT}/api/card?id={}", card_id.clone());
-        if let Ok(response) = client.get(&url).send().await {
-            if let Ok(result) = response.json::<Card>().await {
-                card.set(Some(result));
+    use_effect(move || {
+        run_future(async move {
+            let card = card2.clone();
+            let client = Client::new();
+            let url = format!("http://{HOST}:{PORT}/api/card?id={}", card_id.clone());
+            if let Ok(response) = client.get(&url).send().await {
+                if let Ok(result) = response.json::<Card>().await {
+                    card.set(Some(result));
+                }
             }
-        }
+        });
     });
     let name = card
         .as_ref()
