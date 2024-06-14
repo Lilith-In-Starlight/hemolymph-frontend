@@ -60,7 +60,6 @@ fn card_list(CardListProps { search }: &CardListProps) -> Html {
     } else {
         modify_title("Searching");
     }
-    modify_meta_tag_content("description", "A search engine for Bloodless cards.");
     let result = use_state_eq(|| None);
     let search = search.clone();
     let result2 = result.clone();
@@ -157,13 +156,6 @@ fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
     let power = card.map_or(9999, |c| c.power);
 
     modify_title(card.map_or("ID not found", |x| &x.name));
-    modify_meta_tag_content(
-        "description",
-        &card
-            .as_ref()
-            .map_or("ID not found".to_string(), |c| c.description.clone()),
-    );
-    modify_meta_tag_content("og:image", &get_filegarden_link(img));
 
     html! {
         <div id="details-view">
@@ -289,7 +281,6 @@ fn switch(route: Route) -> Html {
         Route::Card { id } => html! {<CardDetails card_id={id}/>},
         Route::Instructions => {
             modify_title("How To");
-            modify_meta_tag_content("description", "How to use this engine");
             html! {
                 <div id="instructions">
                     <section>
