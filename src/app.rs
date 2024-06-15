@@ -2,6 +2,7 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
 
+use gloo_timers::callback::Timeout;
 use hemoglobin::cards::Card;
 use rand::seq::SliceRandom;
 use reqwest::Client;
@@ -217,19 +218,27 @@ fn get_ascii_titlecase(s: &str) -> String {
 fn search_bar() -> Html {
     let nav = use_navigator().unwrap();
     let state = use_state(|| false);
+    let debounce_task = use_mut_ref::<Option<Timeout>, _>(|| None);
     let oninput = {
         Callback::from(move |e: InputEvent| {
             let state = state.clone();
-            state.set(!*state);
-            let mut query = QUERY.lock().unwrap();
             let nav = nav.clone();
-            let input = e
-                .target_unchecked_into::<web_sys::HtmlInputElement>()
-                .value();
-            query.clone_from(&input);
-            nav.replace(&Route::Search {
-                query: input.clone(),
+            if let Some(task) = debounce_task.borrow_mut().take() {
+                task.cancel();
+            }
+            let task = Timeout::new(500, move || {
+                let mut query = QUERY.lock().unwrap();
+                let input = e
+                    .target_unchecked_into::<web_sys::HtmlInputElement>()
+                    .value();
+                state.set(!*state);
+                query.clone_from(&input);
+                nav.replace(&Route::Search {
+                    query: input.clone(),
+                });
             });
+
+            debounce_task.borrow_mut().replace(task);
         })
     };
 

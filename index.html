@@ -6,7 +6,7 @@
 			font-family: "Noto Sans", sans-serif;
 		}
         #logo {
-            width: 100%;
+            width: 152px;
             object-fit: cover;
         }
         #search {
@@ -14,20 +14,23 @@
             margin: auto;
             padding-bottom: 20px;
             display: grid;
-            grid-template-columns: 10% auto;
+            grid-template-columns: 152px auto;
             grid-column-gap: 20px;
+			justify-content: stretch;
+			justify-items: stretch;
         }
         #details {
             display: grid;
             margin: auto;
-            width: 60%;
-            justify-content: stretch;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            width: 100%;
+            justify-items: center;
+            justify-content: center;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
             grid-column-gap: 20px;
         }
         #details-view {
             margin: auto;
-            width: 80%;
+            width: 90%;
         }
         #results {
             margin: auto;
@@ -36,13 +39,14 @@
             column-gap: 10px;
             row-gap: 10px;
             display: grid;
-        }
-        #text-description {
-            grid-column-start: 2;
+			justify-items: center;
         }
         #details-preview {
-            width: 400px;
+            width: min(400px, 100%);
         }
+		#text-description {
+			width: 100%;
+		}
         .card-result {
             width: 200px;
             border: black solid 3px;
