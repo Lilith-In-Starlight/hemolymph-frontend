@@ -291,32 +291,47 @@ fn switch(route: Route) -> Html {
         Route::Instructions => {
             modify_title("How To");
             html! {
-                <div id="instructions">
-                    <section>
-                        <h2>{"How to use Hemolymph"}</h2>
-                        <p>{"Hemolymph is the arthropod equivalent of blood. It is also Bloodless' official card database."}</p>
-                        <section class="instruction">
+                <section id="instructions">
+                    <h2>{"How to use Hemolymph"}</h2>
+                    <p>{"Hemolymph is the arthropod equivalent of blood. It is also Bloodless' official card database."}</p>
+                    <div id="instructions-grid">
+                        <section class="instruction fuzzy_instr">
                             <h3>{"Fuzzy Search"}</h3>
                             <p>{"By default, your searches look for matches in Name, Kins, Keywords and Description, prioritizing them in that order."}</p>
                         </section>
-                        <section class="instruction">
+                        <section class="instruction name_instr">
                             <h3>{"Name"}</h3>
                             <p>{"If you want to search by name only, you can write "}<span class="code">{"name:"}</span>{" or "}<span class="code">{"n:"}</span>{" before the name."}</p>
+                            <p class="code">{"n:mantis"}</p>
+                            <p>{"Surround the name in quotation marks if it contains spaces."}</p>
+                            <p class="code">{"n:\"lost man\""}</p>
                         </section>
-                        <section class="instruction">
+                        <section class="instruction kins_instr">
                             <h3>{"Kins, Types and Keywords"}</h3>
-                            <p>{"You can use "}<span class="code">{"k:"}</span>{" for kins and "}<span class="code">{"kw:"}</span>{" for kin. If you want to match more than one kin, they have to be separate. To search by type, use "} <span class="code">{"t:"}</span>{"."}</p>
+                            <p>{"You can use "}<span class="code">{"k:"}</span>{" for kins and "}<span class="code">{"kw:"}</span>{" for keywords. If you want to match more than one kin, they have to be separate. To search by type, use "} <span class="code">{"t:"}</span>{"."}</p>
+                            <p class="code">{"k:ant kw:flying t:creature"}</p>
                         </section>
-                        <section class="Stats">
-                            <h3>{"Kins and Keywords"}</h3>
-                            <p>{"You can use "}<span class="code">{"h: d: p:"}</span>{" and "}<span class="code">{"c:"}</span>{" for health, defense, power and strength, respectively. You can also match comparisons, like "}<span class="code">{"c<=1 h=2 d>1 p!=2"}</span>{"."}</p>
+                        <section class="instruction stats_instr">
+                            <h3>{"Stats"}</h3>
+                            <p>{"You can use "}<span class="code">{"h: d: p:"}</span>{" and "}<span class="code">{"c:"}</span>{" for health, defense, power and strength, respectively. You can also match comparisons."}</p>
+                            <p class="code">{"c=2 p>1 d<2 h!=1"}</p>
                         </section>
-                        <section class="Function">
+                        <section class="instruction devours">
+                            <h3>{"Devours"}</h3>
+                            <p>{"To look for cards that devour other cards, you use "}<span class="code">{"devours:"}</span>{" or "}<span class="code">{"dev:"}</span>{", which require a search query inside them, wrapped in parentheses."}</p>
+                            <p class="code">{"devours:(cost=1)"}</p>
+                        </section>
+                        <section class="instruction fn_instr">
                             <h3>{"Functions"}</h3>
                             <p>{"To search based on things cards can be used for, use "}<span class="code">{"fn:"}</span>{". The spefifics of functions will be documented later, but right now you can, for example, search for "}<span class="code">{"fn:\"search deck\""}</span>{"."}</p>
                         </section>
-                    </section>
-                </div>
+                        <section class="instruction negation">
+                            <h3>{"Negation"}</h3>
+                            <p>{"You can invert a query's result by putting a dash before it. The following example matches all cards without \"mantis\" in their name."}</p>
+                            <p class="code">{"-n:mantis"}</p>
+                        </section>
+                    </div>
+                </section>
             }
         }
     }
