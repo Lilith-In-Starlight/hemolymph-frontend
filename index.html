@@ -1,58 +1,58 @@
 <!doctype html>
 <html>
-    <style>
+	<style>
 		@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 		@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 		body {
 			font-family: "Noto Sans", sans-serif;
 		}
-        #logo {
-            width: 152px;
-            object-fit: cover;
-        }
-        #search {
-            width: 80%;
-            margin: auto;
-            padding-bottom: 20px;
-            display: grid;
-            grid-template-columns: 152px auto;
-            grid-column-gap: 20px;
+		#logo {
+			width: 152px;
+			object-fit: cover;
+		}
+		#search {
+			width: 80%;
+			margin: auto;
+			padding-bottom: 20px;
+			display: grid;
+			grid-template-columns: 152px auto;
+			grid-column-gap: 20px;
 			justify-content: stretch;
 			justify-items: stretch;
-        }
-        #details {
-            display: grid;
-            margin: auto;
-            width: 100%;
-            justify-items: center;
-            justify-content: center;
-            grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
-            grid-column-gap: 20px;
-        }
-        #details-view {
-            margin: auto;
-            width: 90%;
-        }
-        #results {
-            margin: auto;
-            width: 70%;
-            grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
-            column-gap: 10px;
-            row-gap: 10px;
-            display: grid;
+		}
+		#details {
+			display: grid;
+			margin: auto;
+			width: 100%;
 			justify-items: center;
-        }
-        #details-preview {
-            width: min(400px, 100%);
-        }
+			justify-content: center;
+			grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+			grid-column-gap: 20px;
+		}
+		#details-view {
+			margin: auto;
+			width: 90%;
+		}
+		#results {
+			margin: auto;
+			width: 70%;
+			grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+			column-gap: 10px;
+			row-gap: 10px;
+			display: grid;
+			justify-items: center;
+		}
+		#details-preview {
+			width: min(400px, 100%);
+		}
 		#text-description {
 			width: 100%;
 		}
-        .card-result {
-            width: 200px;
-            border: black solid 3px;
-            border-radius: 10px;
-        }
+		.card-result {
+			width: 200px;
+			border: black solid 3px;
+			border-radius: 10px;
+		}
 		.code {
 			background-color: lightgray;
 			padding: 2px;
@@ -64,6 +64,12 @@
 		
 		h1, h2, h3 {
 			margin-top: 0px;
+		}
+		
+		#instructions {
+			width: 80%;
+			margin: auto;
+				
 		}
 
 		#instructions-grid {
@@ -92,14 +98,14 @@
 			border-color: gray;
 			font-family: "Roboto Mono", monospace;
 		}
-    </style>
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <meta name="description" content="{description}"/>
-        <meta name="og:image" content="{ogimage}"/>
+	</style>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<meta name="description" content="{description}"/>
+		<meta name="og:image" content="{ogimage}"/>
 		<meta name="twitter:card" content="summary_large_image">
-        <title>Hemolymph</title>
-    
-    <body>{content}</body>
+		<title>Hemolymph</title>
+	</head>
+	<body>{content}</body>
 </html>
