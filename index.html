@@ -2,6 +2,7 @@
 <html>
     <style>
 		@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+		@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
 		body {
 			font-family: "Noto Sans", sans-serif;
 		}
@@ -52,6 +53,45 @@
             border: black solid 3px;
             border-radius: 10px;
         }
+		.code {
+			background-color: lightgray;
+			padding: 2px;
+			border-radius: 5px;
+			border: black solid 1.5px;
+			border-color: gray;
+			font-family: "Roboto Mono", monospace;
+		}
+		
+		h1, h2, h3 {
+			margin-top: 0px;
+		}
+
+		#instructions-grid {
+			width: 98%;
+			margin: auto;
+			display: grid;
+			column-gap: 10px;
+			row-gap: 10px;
+			grid-template-columns: repeat(auto-fill, minmax(300px,1fr));
+			grid-template-rows: repeat(auto-fill, 300px));
+			justify-items: center;
+			justify-content: center;
+		}
+
+		.instruction {
+			background-color: blanchedalmond;
+			padding: 20px;
+			border-radius: 20px;
+		}
+
+		.code {
+			background-color: lightgray;
+			padding: 2px;
+			border-radius: 5px;
+			border: black solid 1.5px;
+			border-color: gray;
+			font-family: "Roboto Mono", monospace;
+		}
     </style>
     <head>
         <meta charset="utf-8" />
