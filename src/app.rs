@@ -7,8 +7,6 @@ use hemoglobin::cards::Card;
 use rand::seq::SliceRandom;
 use reqwest::Client;
 use serde::Deserialize;
-use web_sys::wasm_bindgen::JsCast;
-use web_sys::HtmlMetaElement;
 use yew::prelude::*;
 use yew_router::history::AnyHistory;
 use yew_router::history::History;
@@ -88,13 +86,11 @@ fn card_list(CardListProps { search }: &CardListProps) -> Html {
                 .iter()
                 .map(|card| {
                     html! {
-
                         <Link<Route> to={Route::Card{id: card.id.clone()}}><img class="card-result" src={get_filegarden_link(card.img.choose(&mut rand::thread_rng()).unwrap_or(&card.name))} /></Link<Route>>
                     }
                 });
 
             html! {
-
                 <div id="results">
                     {for a}
                 </div>
@@ -177,19 +173,6 @@ fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
 }
 
 #[cfg(target_arch = "wasm32")]
-fn modify_meta_tag_content(name: &str, new_content: &str) {
-    let window = web_sys::window().expect("No window exists");
-    let document = window.document().expect("No document on window");
-    let desc = document
-        .query_selector(&format!("meta[name=\"{name}\"]"))
-        .expect("Couldn't find meta element")
-        .expect("Couldn't find meta element")
-        .dyn_into::<HtmlMetaElement>()
-        .unwrap();
-
-    desc.set_content(new_content);
-}
-#[cfg(target_arch = "wasm32")]
 fn modify_title(title: &str) {
     let title = title.trim();
     let window = web_sys::window().expect("No window exists");
@@ -202,9 +185,6 @@ fn modify_title(title: &str) {
 }
 #[cfg(not(target_arch = "wasm32"))]
 fn modify_title(title: &str) {}
-
-#[cfg(not(target_arch = "wasm32"))]
-fn modify_meta_tag_content(name: &str, new_content: &str) {}
 
 fn get_ascii_titlecase(s: &str) -> String {
     let mut b = s.to_string();
@@ -309,7 +289,7 @@ fn switch(route: Route) -> Html {
                         <section class="instruction kins_instr">
                             <h3>{"Kins, Types and Keywords"}</h3>
                             <p>{"You can use "}<span class="code">{"k:"}</span>{" for kins and "}<span class="code">{"kw:"}</span>{" for keywords. If you want to match more than one kin, they have to be separate. To search by type, use "} <span class="code">{"t:"}</span>{"."}</p>
-                            <p class="code">{"k:ant kw:flying t:creature"}</p>
+                            <p class="code">{"k:ant kw:\"flying defense\" t:creature"}</p>
                         </section>
                         <section class="instruction stats_instr">
                             <h3>{"Stats"}</h3>
