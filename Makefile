@@ -6,8 +6,14 @@ build:
 	@echo "Building"
 	trunk build --release
 	
+builddebug:
+	@echo "Building"
+	trunk build
+	
 postbuild: stripintegrity
 
 run: build postbuild
+	
+debug: builddebug postbuild
 
 .DEFAULT_GOAL := run
