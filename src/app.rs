@@ -1,4 +1,6 @@
 #![warn(clippy::pedantic)]
+mod card_details;
+use card_details::CardDetails;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
@@ -21,9 +23,9 @@ static HOST: &'static str = "104.248.54.50";
 static PORT: &'static str = "80";
 
 #[cfg(debug_assertions)]
-static HOST: &str = "127.0.0.1";
+pub static HOST: &str = "127.0.0.1";
 #[cfg(debug_assertions)]
-static PORT: &str = "8080";
+pub static PORT: &str = "8080";
 
 #[derive(Clone, Routable, PartialEq)]
 enum Route {
@@ -33,11 +35,6 @@ enum Route {
     Card { id: String },
     #[at("/howto")]
     Instructions,
-}
-
-#[derive(Properties, PartialEq)]
-struct CardDetailsProps {
-    card_id: String,
 }
 
 #[derive(Properties, PartialEq)]
@@ -110,68 +107,6 @@ fn card_list(CardListProps { search }: &CardListProps) -> Html {
         },
     }
 }
-
-#[function_component(CardDetails)]
-fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> Html {
-    let card = use_state_eq(|| None);
-    let card_id = card_id.clone();
-    let card2 = card.clone();
-    use_effect(move || {
-        run_future(async move {
-            let card = card2.clone();
-            let client = Client::new();
-            let url = format!("http://{HOST}:{PORT}/api/card?id={}", card_id.clone());
-            if let Ok(response) = client.get(&url).send().await {
-                if let Ok(result) = response.json::<Card>().await {
-                    card.set(Some(result));
-                }
-            }
-        });
-    });
-    let card = card.as_ref();
-    let name = card.map_or("ID not found".to_string(), |c| c.name.clone());
-
-    let description: Html = card
-        .map_or("ID not found".to_string(), |c| c.description.clone())
-        .lines()
-        .map(|line| {
-            html! {
-                <p class="description-line">{line}</p>
-            }
-        })
-        .collect();
-
-    let r#type: String = card.map_or("ID not found".to_string(), |c| c.r#type.clone());
-
-    let img = card.as_ref().map_or(vec![], |c| c.img.clone());
-
-    let img = img.choose(&mut rand::thread_rng()).unwrap_or(&name);
-
-    let cost = card.map_or(9999, |c| c.cost);
-    let health = card.map_or(9999, |c| c.health);
-    let defense = card.map_or(9999, |c| c.defense);
-    let power = card.map_or(9999, |c| c.power);
-
-    modify_title(card.map_or("ID not found", |x| &x.name));
-
-    html! {
-        <div id="details-view">
-            <div id="details">
-                <img id="details-preview" src={get_filegarden_link(img)} />
-                <div id="text-description">
-                    <h1 id="details-title">{name.clone()}</h1>
-                    <hr />
-                    <p id="cost-line">{get_ascii_titlecase(&r#type)} {" :: "} {cost} {" Blood"}</p>
-                    <hr />
-                    {description}
-                    <hr />
-                    <p id="stats-line">{health}{"/"}{defense}{"/"}{power}</p>
-                </div>
-            </div>
-        </div>
-    }
-}
-
 #[cfg(target_arch = "wasm32")]
 fn modify_title(title: &str) {
     let title = title.trim();
@@ -228,7 +163,6 @@ fn search_bar() -> Html {
          <nav id="search">
             <Link<Route> to={Route::Search { query: String::new() }}><img id="logo" src="https://file.garden/ZJSEzoaUL3bz8vYK/hemolymphlogo.png" /></Link<Route>>
             <input id="search-bar" type="text" value={quer.clone()} {oninput} />
-            <Link<Route> to={Route::Search {query: quer}}><span>{"Back to search"}</span></Link<Route>>
             <Link<Route> to={Route::Instructions}><span>{"How To Use"}</span></Link<Route>>
         </nav>
     }
@@ -265,9 +199,14 @@ pub fn server_app(props: &ServerAppProps) -> Html {
 }
 
 fn switch(route: Route) -> Html {
+    let fallback = html! {<div><p>{"Loading..."}</p></div>};
     match route {
-        Route::Search { query } => html! {<CardList search={query} />},
-        Route::Card { id } => html! {<CardDetails card_id={id}/>},
+        Route::Search { query } => {
+            html! {<Suspense fallback={fallback}><CardList search={query} /></Suspense>}
+        }
+        Route::Card { id } => {
+            html! {<Suspense fallback={fallback}> <CardDetails card_id={id}/> </Suspense>}
+        }
         Route::Instructions => {
             modify_title("How To");
             html! {
@@ -325,7 +264,6 @@ fn get_filegarden_link(name: &str) -> String {
 }
 
 #[cfg(target_arch = "wasm32")]
-
 pub fn run_future<F>(future: F)
 where
     F: std::future::Future<Output = ()> + 'static,
