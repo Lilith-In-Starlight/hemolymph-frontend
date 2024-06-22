@@ -45,8 +45,13 @@ struct CardListProps {
 #[derive(Deserialize, PartialEq)]
 #[serde(tag = "type")]
 enum QueryResult {
-    CardList { content: Vec<Card> },
-    Error { message: String },
+    CardList {
+        query_text: String,
+        content: Vec<Card>,
+    },
+    Error {
+        message: String,
+    },
 }
 
 #[function_component(CardList)]
@@ -78,7 +83,10 @@ fn card_list(CardListProps { search }: &CardListProps) -> Html {
         });
     });
     match result.as_ref() {
-        Some(QueryResult::CardList { content }) => {
+        Some(QueryResult::CardList {
+            query_text,
+            content,
+        }) => {
             let a = content
                 .iter()
                 .map(|card| {
@@ -88,9 +96,12 @@ fn card_list(CardListProps { search }: &CardListProps) -> Html {
                 });
 
             html! {
-                <div id="results">
-                    {for a}
-                </div>
+                <>
+                    <p id="query_readable">{"Showing "}{a.len()}{" "}{query_text}</p>
+                    <div id="results">
+                        {for a}
+                    </div>
+                </>
             }
         }
         Some(QueryResult::Error { message }) => {
