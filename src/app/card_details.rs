@@ -65,10 +65,10 @@ pub fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> HtmlResu
 
             let img = img.choose(&mut rand::thread_rng()).unwrap_or(name);
 
-            let cost = card.cost;
-            let health = card.health;
-            let defense = card.defense;
-            let power = card.power;
+            let cost = &card.cost;
+            let health = &card.health;
+            let defense = &card.defense;
+            let power = &card.power;
 
             modify_title(name);
 
