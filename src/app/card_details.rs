@@ -71,8 +71,12 @@ pub fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> HtmlResu
             let health = &card.health;
             let defense = &card.defense;
             let power = &card.power;
-            let flavor_text: Vec<&str> =
-                card.flavor_text.lines().filter(|x| !x.is_empty()).collect();
+            let flavor_text: Vec<Html> = card
+                .flavor_text
+                .lines()
+                .filter(|x| !x.is_empty())
+                .map(|x| html! {<p class="flavor-line">{x}</p>})
+                .collect();
 
             modify_title(name);
 
@@ -88,7 +92,7 @@ pub fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> HtmlResu
                             {description}
                             if !flavor_text.is_empty() {
                                 <hr />
-                                <p id="flavor-line">{flavor_text}</p>
+                                {for flavor_text}
                             }
                             if !r#type.contains("command") {
                                 <hr />
