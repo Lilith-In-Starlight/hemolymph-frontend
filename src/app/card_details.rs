@@ -52,9 +52,11 @@ pub fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> HtmlResu
             let description: Html = card
                 .description
                 .lines()
-                .map(|line| {
-                    html! {
-                        <p class="description-line">{line}</p>
+                .filter_map(|line| {
+                    if line.is_empty() {
+                        None
+                    } else {
+                        Some(html! {<p class="description-line">{line}</p>})
                     }
                 })
                 .collect();
@@ -69,7 +71,8 @@ pub fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> HtmlResu
             let health = &card.health;
             let defense = &card.defense;
             let power = &card.power;
-            let flavor_text = &card.flavor_text;
+            let flavor_text: Vec<&str> =
+                card.flavor_text.lines().filter(|x| !x.is_empty()).collect();
 
             modify_title(name);
 

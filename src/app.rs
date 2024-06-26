@@ -118,6 +118,7 @@ fn card_list(CardListProps { search }: &CardListProps) -> Html {
         },
     }
 }
+
 #[cfg(target_arch = "wasm32")]
 fn modify_title(title: &str) {
     let title = title.trim();
