@@ -69,6 +69,7 @@ pub fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> HtmlResu
             let health = &card.health;
             let defense = &card.defense;
             let power = &card.power;
+            let flavor_text = &card.flavor_text;
 
             modify_title(name);
 
@@ -82,6 +83,10 @@ pub fn card_details(CardDetailsProps { card_id }: &CardDetailsProps) -> HtmlResu
                             <p id="cost-line">{get_ascii_titlecase(r#type)} if !r#type.contains("blood flask") {{" :: "} {cost} {" Blood"}}</p>
                             <hr />
                             {description}
+                            if !flavor_text.is_empty() {
+                                <hr />
+                                <p id="flavor-line">{flavor_text}</p>
+                            }
                             if !r#type.contains("command") {
                                 <hr />
                                 <p id="stats-line">{health}{"/"}{defense}{"/"}{power}</p>
